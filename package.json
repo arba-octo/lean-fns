@@ -1,0 +1,55 @@
+{
+  "name": "lean-fns",
+  "version": "0.0.0",
+  "private": true,
+  "description": "General-purpose JavaScript and TypeScript utilities with zero runtime dependencies.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist"],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arba-octo/lean-fns.git"
+  },
+  "bugs": "https://github.com/arba-octo/lean-fns/issues",
+  "homepage": "https://github.com/arba-octo/lean-fns#readme",
+  "packageManager": "pnpm@12.14.0",
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.tooling.json",
+    "test": "pnpm run build && vitest run",
+    "test:watch": "pnpm run build && vitest",
+    "test:types": "tsc -p tests/types/tsconfig.node.json && tsc -p tests/types/tsconfig.bundler.json",
+    "check:package": "publint --strict",
+    "check": "pnpm run typecheck && pnpm run test && pnpm run test:types && pnpm run check:package",
+    "prepack": "pnpm run typecheck && pnpm run build"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "publint": "0.3.25",
+    "tsdown": "0.23.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.4",
+    "vitest": "5.0.5"
+  }
+}

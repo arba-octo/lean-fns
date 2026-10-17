@@ -1,0 +1,9 @@
+name = "code-reviewer"
+description = "Review code using the upstream Superpowers code-reviewer prompt."
+model = "gpt-6-astra"
+model_reasoning_effort = "xhigh"
+
+developer_instructions = """
+Read .agents/skills/requesting-code-review/code-reviewer.md from the project
+root and follow its instructions.
+"""
