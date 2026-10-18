@@ -1,2 +1,1 @@
-// Public utility exports will be added after their contracts are agreed.
-export {};
+export { updateIn } from './update-in.js';

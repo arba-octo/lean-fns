@@ -21,7 +21,9 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
   "engines": {
     "node": ">=22.0.0"
@@ -41,12 +43,18 @@
     "test:watch": "pnpm run build && vitest",
     "test:types": "tsc -p tests/types/tsconfig.node.json && tsc -p tests/types/tsconfig.bundler.json",
     "check:package": "publint --strict",
-    "check": "pnpm run typecheck && pnpm run test && pnpm run test:types && pnpm run check:package",
+    "bench": "pnpm run build && node benchmarks/update-in.mjs",
+    "bench:verify": "node benchmarks/update-in.mjs --verify",
+    "check": "pnpm run typecheck && pnpm run test && pnpm run test:types && pnpm run check:package && pnpm run bench:verify",
     "prepack": "pnpm run typecheck && pnpm run build"
   },
   "devDependencies": {
     "@types/node": "24.19.2",
+    "es-toolkit": "1.52.0",
+    "immer": "11.1.21",
+    "lodash": "4.18.1",
     "publint": "0.3.25",
+    "tinybench": "6.2.2",
     "tsdown": "0.23.1",
     "typescript": "7.0.2",
     "vite": "8.3.4",

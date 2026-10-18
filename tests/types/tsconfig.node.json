@@ -4,5 +4,5 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext"
   },
-  "include": ["import.mts", "require.cts"]
+  "include": ["import.mts", "require.cts", "update-in.mts"]
 }
