@@ -1,4 +1,4 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["import.mts"]
+  "include": ["import.mts", "update-in.mts"]
 }

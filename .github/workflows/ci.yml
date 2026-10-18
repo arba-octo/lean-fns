@@ -86,6 +86,9 @@ jobs:
           import * as library from 'lean-fns';
 
           assert.equal(typeof library, 'object');
+          const state = { count: 1 };
+          assert.deepEqual(library.updateIn(state, ['count'], value => value + 1), { count: 2 });
+          assert.deepEqual(state, { count: 1 });
           assert.equal(fileURLToPath(import.meta.resolve('lean-fns')), resolve('node_modules/lean-fns/dist/index.js'));
           console.log(`ESM OK on ${process.version}`);
           NODE
@@ -96,6 +99,9 @@ jobs:
           const library = require('lean-fns');
 
           assert.equal(typeof library, 'object');
+          const state = { count: 1 };
+          assert.deepEqual(library.updateIn(state, ['count'], value => value + 1), { count: 2 });
+          assert.deepEqual(state, { count: 1 });
           assert.equal(require.resolve('lean-fns'), resolve('node_modules/lean-fns/dist/index.cjs'));
           const metadata = require('lean-fns/package.json');
           for (const field of ['dependencies', 'optionalDependencies', 'peerDependencies']) {
