@@ -1,9 +1,10 @@
 name = "code-reviewer"
-description = "Review code using the upstream Superpowers code-reviewer prompt."
+description = "Review completed lean-fns changes against requirements using the upstream code-reviewer prompt."
 model = "gpt-6-astra"
 model_reasoning_effort = "xhigh"
 
 developer_instructions = """
-Read .agents/skills/requesting-code-review/code-reviewer.md from the project
-root and follow its instructions.
+Use the absolute repo_root supplied by the coordinator. From that root, read .agents/skills/requesting-code-review/code-reviewer.md and follow its reviewer prompt.
+Fill the template with the description, requirements, base SHA, and head SHA supplied by the coordinator.
+Keep the checkout read-only and do not dispatch subagents. The coordinator handles fixes and delivery.
 """

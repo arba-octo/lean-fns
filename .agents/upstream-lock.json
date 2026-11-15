@@ -4,82 +4,146 @@
     {
       "repository": "EveryInc/compound-engineering-plugin",
       "revision": "2e41b4490a37f53db0beb6d4904618da9af2f559",
-      "source_path": "LICENSE",
-      "url": "https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/2e41b4490a37f53db0beb6d4904618da9af2f559/LICENSE",
-      "local_path": ".agents/skills/ce-explain/LICENSE.txt",
-      "sha256": "61d89de7646effdaba2d0a4ab7bd0eba60b4094b83efe5bc73c7940e43e93fc6"
-    },
-    {
-      "repository": "EveryInc/compound-engineering-plugin",
-      "revision": "2e41b4490a37f53db0beb6d4904618da9af2f559",
       "source_path": "skills/ce-explain/SKILL.md",
       "url": "https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/2e41b4490a37f53db0beb6d4904618da9af2f559/skills/ce-explain/SKILL.md",
-      "local_path": ".agents/skills/ce-explain/SKILL.md",
-      "sha256": "fe1a05fa429338524374b2428bac9a0338a7e7c2f7ff4e1e510da123e834cafe"
-    },
-    {
-      "repository": "EveryInc/compound-engineering-plugin",
-      "revision": "2e41b4490a37f53db0beb6d4904618da9af2f559",
-      "source_path": "skills/ce-explain/references/check-in.md",
-      "url": "https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/2e41b4490a37f53db0beb6d4904618da9af2f559/skills/ce-explain/references/check-in.md",
-      "local_path": ".agents/skills/ce-explain/references/check-in.md",
-      "sha256": "699998d6a766cd84f55ddfef80bc3d4f2cdf2eeaba912e3fa458fd585484432a"
-    },
-    {
-      "repository": "EveryInc/compound-engineering-plugin",
-      "revision": "2e41b4490a37f53db0beb6d4904618da9af2f559",
-      "source_path": "skills/ce-explain/references/destinations.md",
-      "url": "https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/2e41b4490a37f53db0beb6d4904618da9af2f559/skills/ce-explain/references/destinations.md",
-      "local_path": ".agents/skills/ce-explain/references/destinations.md",
-      "sha256": "7abef53fd36fc86f65b572fda1558081b522ac57e829fb7b64a5530ff3a7738c"
-    },
-    {
-      "repository": "EveryInc/compound-engineering-plugin",
-      "revision": "2e41b4490a37f53db0beb6d4904618da9af2f559",
-      "source_path": "skills/ce-explain/references/explainer-html.md",
-      "url": "https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/2e41b4490a37f53db0beb6d4904618da9af2f559/skills/ce-explain/references/explainer-html.md",
-      "local_path": ".agents/skills/ce-explain/references/explainer-html.md",
-      "sha256": "4a2d8c7e5a3c7af6f5f17caada063beb4a41ae08c96cd59b0435c076832b272b"
-    },
-    {
-      "repository": "EveryInc/compound-engineering-plugin",
-      "revision": "2e41b4490a37f53db0beb6d4904618da9af2f559",
-      "source_path": "skills/ce-explain/references/explainer-markdown.md",
-      "url": "https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/2e41b4490a37f53db0beb6d4904618da9af2f559/skills/ce-explain/references/explainer-markdown.md",
-      "local_path": ".agents/skills/ce-explain/references/explainer-markdown.md",
-      "sha256": "5036d73f2b52452cb952634185a251604a9dfb60d8edcc2479d7f36f89ba2ba2"
-    },
-    {
-      "repository": "EveryInc/compound-engineering-plugin",
-      "revision": "2e41b4490a37f53db0beb6d4904618da9af2f559",
-      "source_path": "skills/ce-explain/references/intake.md",
-      "url": "https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/2e41b4490a37f53db0beb6d4904618da9af2f559/skills/ce-explain/references/intake.md",
-      "local_path": ".agents/skills/ce-explain/references/intake.md",
-      "sha256": "9a9dbe908cf2e0ea0017fe99b02e7e33e8d03afaf1dcd42b3707d8d8c38caa75"
-    },
-    {
-      "repository": "EveryInc/compound-engineering-plugin",
-      "revision": "2e41b4490a37f53db0beb6d4904618da9af2f559",
-      "source_path": "skills/ce-explain/references/orchestration.md",
-      "url": "https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/2e41b4490a37f53db0beb6d4904618da9af2f559/skills/ce-explain/references/orchestration.md",
-      "local_path": ".agents/skills/ce-explain/references/orchestration.md",
-      "sha256": "f2e17e8ab7c9aff0eecd189c008ee8544c46b80be0cbd0ccc3ceb13d3e0452ea"
+      "sha256": "fe1a05fa429338524374b2428bac9a0338a7e7c2f7ff4e1e510da123e834cafe",
+      "local_path": ".agents/skills/ce-explain/SKILL.md"
     },
     {
       "repository": "EveryInc/compound-engineering-plugin",
       "revision": "2e41b4490a37f53db0beb6d4904618da9af2f559",
       "source_path": "skills/ce-explain/references/agents/behavior-trace-scout.md",
       "url": "https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/2e41b4490a37f53db0beb6d4904618da9af2f559/skills/ce-explain/references/agents/behavior-trace-scout.md",
-      "local_path": ".agents/skills/ce-explain/references/agents/behavior-trace-scout.md",
-      "sha256": "3fa3ee587170a811971105dd9e9c02d628be01568b7f1188fb56132ca00f262a"
+      "sha256": "3fa3ee587170a811971105dd9e9c02d628be01568b7f1188fb56132ca00f262a",
+      "local_path": ".agents/skills/ce-explain/references/agents/behavior-trace-scout.md"
     },
     {
       "repository": "EveryInc/compound-engineering-plugin",
       "revision": "2e41b4490a37f53db0beb6d4904618da9af2f559",
       "source_path": "skills/ce-explain/references/agents/work-recap-scout.md",
       "url": "https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/2e41b4490a37f53db0beb6d4904618da9af2f559/skills/ce-explain/references/agents/work-recap-scout.md",
-      "local_path": ".agents/skills/ce-explain/references/agents/work-recap-scout.md",
-      "sha256": "5c9176a910cd90e2faf02c477ef950f40cf065b146a6e055fa971ce8bee1718b"
+      "sha256": "5c9176a910cd90e2faf02c477ef950f40cf065b146a6e055fa971ce8bee1718b",
+      "local_path": ".agents/skills/ce-explain/references/agents/work-recap-scout.md"
+    },
+    {
+      "repository": "EveryInc/compound-engineering-plugin",
+      "revision": "2e41b4490a37f53db0beb6d4904618da9af2f559",
+      "source_path": "skills/ce-explain/references/check-in.md",
+      "url": "https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/2e41b4490a37f53db0beb6d4904618da9af2f559/skills/ce-explain/references/check-in.md",
+      "sha256": "699998d6a766cd84f55ddfef80bc3d4f2cdf2eeaba912e3fa458fd585484432a",
+      "local_path": ".agents/skills/ce-explain/references/check-in.md"
+    },
+    {
+      "repository": "EveryInc/compound-engineering-plugin",
+      "revision": "2e41b4490a37f53db0beb6d4904618da9af2f559",
+      "source_path": "skills/ce-explain/references/destinations.md",
+      "url": "https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/2e41b4490a37f53db0beb6d4904618da9af2f559/skills/ce-explain/references/destinations.md",
+      "sha256": "7abef53fd36fc86f65b572fda1558081b522ac57e829fb7b64a5530ff3a7738c",
+      "local_path": ".agents/skills/ce-explain/references/destinations.md"
+    },
+    {
+      "repository": "EveryInc/compound-engineering-plugin",
+      "revision": "2e41b4490a37f53db0beb6d4904618da9af2f559",
+      "source_path": "skills/ce-explain/references/explainer-html.md",
+      "url": "https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/2e41b4490a37f53db0beb6d4904618da9af2f559/skills/ce-explain/references/explainer-html.md",
+      "sha256": "4a2d8c7e5a3c7af6f5f17caada063beb4a41ae08c96cd59b0435c076832b272b",
+      "local_path": ".agents/skills/ce-explain/references/explainer-html.md"
+    },
+    {
+      "repository": "EveryInc/compound-engineering-plugin",
+      "revision": "2e41b4490a37f53db0beb6d4904618da9af2f559",
+      "source_path": "skills/ce-explain/references/explainer-markdown.md",
+      "url": "https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/2e41b4490a37f53db0beb6d4904618da9af2f559/skills/ce-explain/references/explainer-markdown.md",
+      "sha256": "5036d73f2b52452cb952634185a251604a9dfb60d8edcc2479d7f36f89ba2ba2",
+      "local_path": ".agents/skills/ce-explain/references/explainer-markdown.md"
+    },
+    {
+      "repository": "EveryInc/compound-engineering-plugin",
+      "revision": "2e41b4490a37f53db0beb6d4904618da9af2f559",
+      "source_path": "skills/ce-explain/references/intake.md",
+      "url": "https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/2e41b4490a37f53db0beb6d4904618da9af2f559/skills/ce-explain/references/intake.md",
+      "sha256": "9a9dbe908cf2e0ea0017fe99b02e7e33e8d03afaf1dcd42b3707d8d8c38caa75",
+      "local_path": ".agents/skills/ce-explain/references/intake.md"
+    },
+    {
+      "repository": "EveryInc/compound-engineering-plugin",
+      "revision": "2e41b4490a37f53db0beb6d4904618da9af2f559",
+      "source_path": "skills/ce-explain/references/orchestration.md",
+      "url": "https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/2e41b4490a37f53db0beb6d4904618da9af2f559/skills/ce-explain/references/orchestration.md",
+      "sha256": "f2e17e8ab7c9aff0eecd189c008ee8544c46b80be0cbd0ccc3ceb13d3e0452ea",
+      "local_path": ".agents/skills/ce-explain/references/orchestration.md"
+    },
+    {
+      "repository": "EveryInc/compound-engineering-plugin",
+      "revision": "2e41b4490a37f53db0beb6d4904618da9af2f559",
+      "source_path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/2e41b4490a37f53db0beb6d4904618da9af2f559/LICENSE",
+      "sha256": "61d89de7646effdaba2d0a4ab7bd0eba60b4094b83efe5bc73c7940e43e93fc6",
+      "local_path": ".agents/skills/ce-explain/LICENSE.txt"
+    },
+    {
+      "repository": "obra/superpowers",
+      "revision": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "source_path": "skills/requesting-code-review/SKILL.md",
+      "local_path": ".agents/skills/requesting-code-review/SKILL.md",
+      "url": "https://raw.githubusercontent.com/obra/superpowers/22f0b463e7a5e579904dd6211a520321035526f7/skills/requesting-code-review/SKILL.md",
+      "sha256": "2180e14a448e9410bec88e6646a2d1f0ce7fdd58de27388c1e052e929679d2bc"
+    },
+    {
+      "repository": "obra/superpowers",
+      "revision": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "source_path": "skills/requesting-code-review/code-reviewer.md",
+      "local_path": ".agents/skills/requesting-code-review/code-reviewer.md",
+      "url": "https://raw.githubusercontent.com/obra/superpowers/22f0b463e7a5e579904dd6211a520321035526f7/skills/requesting-code-review/code-reviewer.md",
+      "sha256": "82e370be6b3447523816286195571e4216ba56ba1ad6ad0e87862294c4c78dcb"
+    },
+    {
+      "repository": "obra/superpowers",
+      "revision": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "source_path": "LICENSE",
+      "local_path": ".agents/skills/requesting-code-review/LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/obra/superpowers/22f0b463e7a5e579904dd6211a520321035526f7/LICENSE",
+      "sha256": "a37e0e9697144819e1d965176ac4ae5bc3fa02d11e7812036bbcadf6dafe2400"
+    },
+    {
+      "repository": "obra/superpowers",
+      "revision": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "source_path": "skills/test-driven-development/SKILL.md",
+      "url": "https://raw.githubusercontent.com/obra/superpowers/22f0b463e7a5e579904dd6211a520321035526f7/skills/test-driven-development/SKILL.md",
+      "sha256": "64b03fce4aee5a97a93160cea8111f3ba13a17b7c001db4bd5836d67fd10705d",
+      "local_path": ".agents/skills/test-driven-development/SKILL.md"
+    },
+    {
+      "repository": "obra/superpowers",
+      "revision": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "source_path": "skills/test-driven-development/writing-good-tests.md",
+      "url": "https://raw.githubusercontent.com/obra/superpowers/22f0b463e7a5e579904dd6211a520321035526f7/skills/test-driven-development/writing-good-tests.md",
+      "sha256": "51471c853306ff92ca8bb41dcaea05f31c0e46b03651f8f3c99754b7172f4ae1",
+      "local_path": ".agents/skills/test-driven-development/writing-good-tests.md"
+    },
+    {
+      "repository": "obra/superpowers",
+      "revision": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "source_path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/obra/superpowers/22f0b463e7a5e579904dd6211a520321035526f7/LICENSE",
+      "sha256": "a37e0e9697144819e1d965176ac4ae5bc3fa02d11e7812036bbcadf6dafe2400",
+      "local_path": ".agents/skills/test-driven-development/LICENSE.txt"
+    },
+    {
+      "repository": "conventional-branch/conventional-branch",
+      "revision": "a02c2c9ce172317e677289c6b42dfba3eada14c7",
+      "source_path": "skills/conventional-branch/SKILL.md",
+      "url": "https://raw.githubusercontent.com/conventional-branch/conventional-branch/a02c2c9ce172317e677289c6b42dfba3eada14c7/skills/conventional-branch/SKILL.md",
+      "sha256": "ebe754e4000f240b452afc9019edb4126d9a01427f01868013b54afaf5583d44",
+      "local_path": ".agents/skills/conventional-branch/SKILL.md"
+    },
+    {
+      "repository": "conventional-branch/conventional-branch",
+      "revision": "a02c2c9ce172317e677289c6b42dfba3eada14c7",
+      "source_path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/conventional-branch/conventional-branch/a02c2c9ce172317e677289c6b42dfba3eada14c7/LICENSE",
+      "sha256": "f5b745ef98087f531e719ee8ca6a96809444573ecc7173c6fa68eaad39b3cc3f",
+      "local_path": ".agents/skills/conventional-branch/LICENSE.txt"
     }
   ]
 }
