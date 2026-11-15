@@ -45,7 +45,9 @@
     "check:package": "publint --strict",
     "bench": "pnpm run build && node benchmarks/update-in.mjs",
     "bench:verify": "node benchmarks/update-in.mjs --verify",
-    "check": "pnpm run typecheck && pnpm run test && pnpm run test:types && pnpm run check:package && pnpm run bench:verify",
+    "bench:produce": "pnpm run build && node benchmarks/produce.mjs",
+    "bench:produce:verify": "node benchmarks/produce.mjs --verify",
+    "check": "pnpm run typecheck && pnpm run test && pnpm run test:types && pnpm run check:package && pnpm run bench:verify && pnpm run bench:produce:verify",
     "prepack": "pnpm run typecheck && pnpm run build"
   },
   "devDependencies": {
