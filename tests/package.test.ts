@@ -12,13 +12,18 @@ describe('built package entry points', () => {
     const source = `${importSource}
       const state = { user: { name: 'Anna' }, shared: {} };
       const next = library.updateIn(state, ['user', 'name'], name => name.toUpperCase());
+      const produced = library.produce(state, draft => { draft.user.name = 'Olga'; });
       console.log(JSON.stringify({
-        exports: Object.keys(library),
+        exports: Object.keys(library).sort(),
         before: state.user.name,
         after: next.user.name,
         changed: next !== state && next.user !== state.user,
         shared: next.shared === state.shared,
         noop: library.updateIn(next, ['user', 'name'], 'ANNA') === next,
+        produced: produced.user.name,
+        producedChanged: produced !== state && produced.user !== state.user,
+        producedShared: produced.shared === state.shared,
+        producedNoop: library.produce(state, draft => { draft.user.name = 'Anna'; }) === state,
       }));`;
     const output = execFileSync(process.execPath, [inputType, '--eval', source], {
       cwd,
@@ -26,7 +31,8 @@ describe('built package entry points', () => {
     });
 
     expect(JSON.parse(output)).toEqual({
-      exports: ['updateIn'], before: 'Anna', after: 'ANNA', changed: true, shared: true, noop: true,
+      exports: ['produce', 'updateIn'], before: 'Anna', after: 'ANNA', changed: true, shared: true, noop: true,
+      produced: 'Olga', producedChanged: true, producedShared: true, producedNoop: true,
     });
   });
 });
