@@ -19,6 +19,7 @@ type RecipeGuard<R> = IsAny<R> extends true ? never
   : [Extract<R, PromiseLike<unknown>>] extends [never] ? unknown : never;
 
 type Container = Record<string, unknown> | unknown[];
+type ChildCache = [string, DraftNode] | Record<string, DraftNode>;
 interface Scope {
   nodes: DraftNode[];
   resolved?: WeakMap<object, Container>;
@@ -30,8 +31,7 @@ interface DraftNode {
   parent: DraftNode | undefined;
   parentKey: string | undefined;
   copy: Container | undefined;
-  firstChild: DraftNode | undefined;
-  children: Record<string, DraftNode> | undefined;
+  children: ChildCache | undefined;
   modifiedChildren: DraftNode[] | undefined;
   assigned: Set<string> | undefined;
   proxy: Container;
@@ -76,19 +76,6 @@ function assertValue(value: unknown, scope: Scope): void {
   }
 }
 
-function readOwn(container: Container, key: string | symbol): unknown {
-  const descriptor = Object.getOwnPropertyDescriptor(container, key);
-  if (!descriptor) return undefined;
-  return readDescriptor(container, key, descriptor);
-}
-
-function readDescriptor(container: Container, key: string | symbol, descriptor: PropertyDescriptor): unknown {
-  if (!('value' in descriptor) || (!descriptor.enumerable && !(Array.isArray(container) && key === 'length'))) {
-    throw new TypeError('Accessors and non-enumerable fields are unsupported');
-  }
-  return descriptor.value;
-}
-
 function shallowCopy(base: Container): Container {
   if (Array.isArray(base)) return Array.prototype.slice.call(base) as unknown[];
   if (Object.getPrototypeOf(base) === null) {
@@ -126,13 +113,18 @@ function targetNode(target: Target): DraftNode {
 }
 
 function cachedChild(node: DraftNode, key: string | symbol): DraftNode | undefined {
-  if (node.firstChild?.parentKey === key) return node.firstChild;
-  return typeof key === 'string' ? node.children?.[key] : undefined;
+  const children = node.children;
+  if (!children) return undefined;
+  if (Array.isArray(children)) return children[0] === key ? children[1] : undefined;
+  return typeof key === 'string' ? children[key] : undefined;
 }
 
 function forgetChild(node: DraftNode, key: string): void {
-  if (node.firstChild?.parentKey === key) node.firstChild = undefined;
-  delete node.children?.[key];
+  const children = node.children;
+  if (!children) return;
+  if (Array.isArray(children)) {
+    if (children[0] === key) node.children = undefined;
+  } else delete children[key];
 }
 
 function draftChild(node: DraftNode, key: string, value: Container): Container {
@@ -143,12 +135,33 @@ function draftChild(node: DraftNode, key: string, value: Container): Container {
   }
   assertPrototype(value);
   // Assigned external values remain raw. Reads of the base use a separate draft cache.
-  if (node.copy && (!hasOwn(node.base, key) || value !== readOwn(node.base, key))) return value;
+  if (node.copy && (!hasOwn(node.base, key) || value !== (node.base as Record<string, unknown>)[key])) return value;
   const child = createDraft(value, node.scope, node, key);
   // A single path needs no dictionary, especially at a sparse array index.
-  if (!node.firstChild) node.firstChild = child;
-  else (node.children ??= Object.create(null) as Record<string, DraftNode>)[key] = child;
+  const children = node.children;
+  if (!children) node.children = [key, child];
+  else if (Array.isArray(children)) {
+    const expanded = Object.create(null) as Record<string, DraftNode>;
+    expanded[children[0]] = children[1];
+    expanded[key] = child;
+    node.children = expanded;
+  } else children[key] = child;
   return child.proxy;
+}
+
+function readProperty(node: DraftNode, key: string | symbol, receiver: unknown): unknown {
+  const source = node.copy ?? node.base;
+  // Writes to this property invalidate its cache; a length truncation removes the own key.
+  const cached = node.children ? cachedChild(node, key) : undefined;
+  if (cached && (!node.copy || hasOwn(source, key))) return cached.proxy;
+  if (!hasOwn(source, key)) return Reflect.get(source, key, receiver);
+  const value = (source as Record<string | symbol, unknown>)[key];
+  if (typeof key === 'symbol') throw new TypeError('Symbol keys are unsupported');
+  if (!isObject(value)) {
+    if (typeof value === 'function') throw new TypeError('Functions are unsupported state values');
+    return value;
+  }
+  return draftChild(node, key, value);
 }
 
 const handlers: ProxyHandler<Target> = {
@@ -162,24 +175,7 @@ const handlers: ProxyHandler<Target> = {
     if (key === 'constructor' && (!Array.isArray(base) || hasOwn(source, key))) {
       throw new TypeError('Unsupported produce property');
     }
-    // Writes to this property invalidate its cache; a length truncation removes the own key.
-    const cached = cachedChild(node, key);
-    if (cached && (!node.copy || hasOwn(source, key))) return cached.proxy;
-    let value: unknown;
-    if (node.copy) {
-      if (!hasOwn(source, key)) return Reflect.get(source, key, receiver);
-      value = Reflect.get(source, key);
-    } else {
-      const descriptor = Object.getOwnPropertyDescriptor(base, key);
-      if (!descriptor) return Reflect.get(base, key, receiver);
-      value = readDescriptor(base, key, descriptor);
-    }
-    if (typeof key === 'symbol') throw new TypeError('Symbol keys are unsupported');
-    if (!isObject(value)) {
-      if (typeof value === 'function') throw new TypeError('Functions are unsupported state values');
-      return value;
-    }
-    return draftChild(node, key, value);
+    return readProperty(node, key, receiver);
   },
 
   set(target, key, value: unknown) {
@@ -188,12 +184,12 @@ const handlers: ProxyHandler<Target> = {
     assertValue(value, node.scope);
     const source = node.copy ?? node.base;
     const present = hasOwn(source, key);
-    const current = readOwn(source, key);
+    const current = present ? (source as Record<string, unknown>)[key] : undefined;
     const cached = cachedChild(node, key);
     const child = cached?.base === current ? cached : undefined;
     if (present && ((Object.is(current, value) && !child?.copy)
       || (child !== undefined && child.proxy === value))) return true;
-    Reflect.set(prepareCopy(node), key, value);
+    (prepareCopy(node) as Record<string, unknown>)[key] = value;
     forgetChild(node, key);
     // Only object assignments can contain drafts that require finalization.
     if (isObject(value)) (node.assigned ??= new Set()).add(key);
@@ -206,7 +202,6 @@ const handlers: ProxyHandler<Target> = {
     assertWritableKey(node, key);
     if (Array.isArray(node.base) && key === 'length') throw new TypeError('Cannot delete array length');
     if (hasOwn(node.copy ?? node.base, key)) {
-      readOwn(node.copy ?? node.base, key);
       Reflect.deleteProperty(prepareCopy(node), key);
     }
     forgetChild(node, key);
@@ -239,15 +234,35 @@ const handlers: ProxyHandler<Target> = {
   preventExtensions() { throw new TypeError('Freezing drafts is unsupported'); },
 };
 
+const arrayHandlers: ProxyHandler<[DraftNode]> = {
+  ...handlers,
+  get(target, key, receiver) {
+    const node = target[0];
+    // Array length is always a native data property, including on frozen arrays.
+    if (key === 'length') return (node.copy ?? node.base).length;
+    if (typeof key === 'string') {
+      const first = key.charCodeAt(0);
+      // Digit-prefixed keys cannot be a reserved property or the internal symbol.
+      if (first >= 48 && first <= 57) return readProperty(node, key, receiver);
+    }
+    return handlers.get!(node, key, receiver);
+  },
+  has(target, key) {
+    const node = target[0];
+    return key in (node.copy ?? node.base);
+  },
+};
+
 function createDraft(base: Container, scope: Scope, parent?: DraftNode, parentKey?: string): DraftNode {
   const node: DraftNode = {
-    base, scope, parent, parentKey, copy: undefined, firstChild: undefined,
+    base, scope, parent, parentKey, copy: undefined,
     children: undefined, modifiedChildren: undefined, assigned: undefined,
     proxy: base, revoke: () => {}, finalizing: false, finalized: false,
   };
   // A separate extensible target allows writable drafts over frozen inputs.
-  const target: Target = Array.isArray(base) ? [node] : node;
-  const { proxy, revoke } = Proxy.revocable(target, handlers);
+  const { proxy, revoke } = Array.isArray(base)
+    ? Proxy.revocable<[DraftNode]>([node], arrayHandlers)
+    : Proxy.revocable(node, handlers);
   node.proxy = proxy as unknown as Container;
   node.revoke = revoke;
   scope.nodes.push(node);
@@ -272,9 +287,13 @@ function resolveValue(value: unknown, scope: Scope): unknown {
   let result = value;
   // A newly assigned wrapper can contain drafts at any depth.
   for (const key of Object.keys(value)) {
-    const current = readOwn(value, key);
+    const current = (value as Record<string, unknown>)[key];
+    if (!isObject(current)) {
+      if (typeof current === 'function') throw new TypeError('Functions are unsupported state values');
+      continue;
+    }
     const resolved = resolveValue(current, scope);
-    if (!Object.is(current, resolved)) {
+    if (current !== resolved) {
       if (result === value) result = shallowCopy(value);
       // The shallow copy contains writable own data properties.
       (result as Record<string, unknown>)[key] = resolved;
@@ -294,15 +313,16 @@ function finalize(node: DraftNode): Container {
   if (node.modifiedChildren) {
     for (const child of node.modifiedChildren) {
       const key = child.parentKey!;
-      if (cachedChild(node, key) === child && hasOwn(node.copy, key) && Reflect.get(node.copy, key) === child.base) {
-        Reflect.set(node.copy, key, finalize(child));
+      if (cachedChild(node, key) === child && hasOwn(node.copy, key)
+        && (node.copy as Record<string, unknown>)[key] === child.base) {
+        (node.copy as Record<string, unknown>)[key] = finalize(child);
       }
     }
   }
   if (node.assigned) {
     for (const key of node.assigned) {
       if (hasOwn(node.copy, key)) {
-        Reflect.set(node.copy, key, resolveValue(Reflect.get(node.copy, key), node.scope));
+        (node.copy as Record<string, unknown>)[key] = resolveValue((node.copy as Record<string, unknown>)[key], node.scope);
       }
     }
   }

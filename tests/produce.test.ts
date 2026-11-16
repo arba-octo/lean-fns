@@ -277,6 +277,153 @@ describe('produce', () => {
     expect(next[0]).toBe(state[1]);
   });
 
+  it('preserves primitive values, holes and truthiness when filtering', () => {
+    const symbol = Symbol('value');
+    const state = { items: [NaN, -0, 0, 1n, symbol, null, undefined, false, 'keep', , 2] };
+    const next = produce(state, draft => {
+      draft.items = draft.items.filter((_value, index) => index < 9 ? 'yes' : 0);
+    });
+    expect(next.items).toEqual([NaN, -0, 0, 1n, symbol, null, undefined, false, 'keep']);
+    expect(Object.is(next.items[1], -0)).toBe(true);
+    expect(9 in state.items).toBe(false);
+    expect(state.items.length).toBe(11);
+  });
+
+  it('retains the value read before a filter callback replaces its current array slot', () => {
+    const state = { items: [{ count: 1 }, { count: 2 }] };
+    const next = produce(state, draft => {
+      draft.items = draft.items.filter((item, index, array) => {
+        if (index === 0) {
+          array[0] = { count: 10 };
+          item.count++;
+        }
+        return true;
+      });
+    });
+    expect(next.items).toEqual([{ count: 2 }, { count: 2 }]);
+    expect(next.items[1]).toBe(state.items[1]);
+    expect(state.items[0]!.count).toBe(1);
+  });
+
+  it('supports borrowed filter methods, exactly three callback arguments and overridden callback.call', () => {
+    const state = { items: [{ count: 1 }, { count: 2 }] };
+    const next = produce(state, draft => {
+      const filter = draft.items.filter as Function;
+      expect(filter.call([1, 2, 3], (value: number) => value > 1)).toEqual([2, 3]);
+      expect(filter.call({ 0: 1, 2: 3, length: 3 }, (value: number) => value > 1)).toEqual([3]);
+      const callback = function (item: { count: number }, index: number, array: typeof draft.items) {
+        expect(arguments.length).toBe(3);
+        expect(array).toBe(draft.items);
+        expect(item).toBe(array[index]);
+        return item.count > 1;
+      };
+      Object.defineProperty(callback, 'call', { value: () => { throw new Error('must not call callback.call'); } });
+      const optimized = filter.call(draft.items, callback);
+      const native = Array.prototype.filter.call(draft.items, callback);
+      expect(optimized).toEqual(native);
+      draft.items = optimized;
+      draft.items[0]!.count++;
+    });
+    expect(next.items).toEqual([{ count: 3 }]);
+    expect(state.items[1]!.count).toBe(2);
+  });
+
+  it('reads species once after validating the callback and defines custom result fields', () => {
+    const original = Object.getOwnPropertyDescriptor(Array, Symbol.species)!;
+    let reads = 0;
+    let constructedLength: number | undefined;
+    let output: any;
+    const state = [1, , 3];
+    try {
+      Object.defineProperty(Array, Symbol.species, { configurable: true, get() {
+        reads++;
+        return function (length: number) { constructedLength = length; return { marker: true }; };
+      } });
+      invoke(state, draft => { output = draft.filter((value: number) => value > 1); });
+    } finally {
+      Object.defineProperty(Array, Symbol.species, original);
+    }
+    expect(reads).toBe(1);
+    expect(constructedLength).toBe(0);
+    expect(output).toEqual({ marker: true, 0: 3 });
+    expect(Object.getOwnPropertyDescriptor(output, '0')).toEqual({
+      value: 3, writable: true, enumerable: true, configurable: true,
+    });
+    reads = 0;
+    let invalid: unknown;
+    try {
+      Object.defineProperty(Array, Symbol.species, { configurable: true, get() { reads++; return Array; } });
+      try { invoke([], draft => draft.filter(null)); } catch (error) { invalid = error; }
+    } finally {
+      Object.defineProperty(Array, Symbol.species, original);
+    }
+    expect(invalid).toBeInstanceOf(TypeError);
+    expect(reads).toBe(0);
+  });
+
+  it('uses the actual receiver when filter is borrowed by an object inheriting a draft', () => {
+    produce([1, 2, 3], draft => {
+      const receiver = Object.create(draft);
+      Object.defineProperties(receiver, { 0: { value: 9 }, length: { value: 1 } });
+      const observed: unknown[] = [];
+      const result = (draft.filter as Function).call(receiver, (value: number, _index: number, array: unknown) => {
+        observed.push(array);
+        return value > 0;
+      });
+      expect(result).toEqual([9]);
+      expect(observed).toEqual([receiver]);
+      expect(observed[0]).not.toBe(draft);
+    });
+  });
+
+  it('uses native filter when the inherited array constructor is customized', () => {
+    const original = Object.getOwnPropertyDescriptor(Array.prototype, 'constructor')!;
+    let reads = 0;
+    let output: unknown;
+    try {
+      Object.defineProperty(Array.prototype, 'constructor', { configurable: true, get() {
+        reads++;
+        return { [Symbol.species]: Array };
+      } });
+      invoke([1, 2, 3], draft => { output = draft.filter((value: number) => value > 1); });
+    } finally {
+      Object.defineProperty(Array.prototype, 'constructor', original);
+    }
+    expect(reads).toBe(1);
+    expect(output).toEqual([2, 3]);
+  });
+
+  it('creates own filter results even if a callback installs an inherited index setter', () => {
+    const original = Object.getOwnPropertyDescriptor(Array.prototype, '0');
+    let writes = 0;
+    let next: number[] | undefined;
+    try {
+      next = produce([1, 2], draft => draft.filter((value, index) => {
+        if (index === 0) Object.defineProperty(Array.prototype, '0', {
+          configurable: true, set() { writes++; },
+        });
+        return value > 0;
+      }));
+    } finally {
+      if (original) Object.defineProperty(Array.prototype, '0', original);
+      else delete Array.prototype[0];
+    }
+    expect(writes).toBe(0);
+    expect(next).toEqual([1, 2]);
+    expect(Object.hasOwn(next!, 0)).toBe(true);
+  });
+
+  it('propagates filter callback errors and revokes the visited drafts', () => {
+    const state = [{ count: 1 }, { count: 2 }];
+    const error = new Error('predicate failed');
+    let visited: { count: number } | undefined;
+    expect(() => produce(state, draft => {
+      draft.filter(item => { visited = item; item.count++; throw error; });
+    })).toThrow(error);
+    expect(state).toEqual([{ count: 1 }, { count: 2 }]);
+    expect(() => visited!.count).toThrow(TypeError);
+  });
+
   it('handles removed and replaced child drafts without restoring stale values', () => {
     const state: { child?: { count: number }; items: { count: number }[] } = { child: { count: 1 }, items: [{ count: 2 }] };
     const next = produce(state, draft => {
@@ -420,12 +567,57 @@ describe('produce', () => {
     expect(() => (produce as Function)({}, 1)).toThrow(/recipe/);
   });
 
-  it('rejects accessors on access without invoking them', () => {
+  it('reads properties directly, allowing getters to run on the source', () => {
+    const getter = vi.fn(function (this: { count: number }) { return this.count + 1; });
+    const state = Object.defineProperty({ count: 1 }, 'value', { get: getter, enumerable: true });
+    const next = invoke(state, draft => { expect(draft.value).toBe(2); });
+    expect(next).toBe(state);
+    expect(getter).toHaveBeenCalledOnce();
+    expect(getter.mock.contexts[0]).toBe(state);
+  });
+
+  it('reads getter-backed values before writing a shallow copy', () => {
     const getter = vi.fn(() => 1);
     const state = Object.defineProperty({}, 'value', { get: getter, enumerable: true });
-    expect(() => invoke(state, draft => { void draft.value; })).toThrow(/Accessors/);
-    expect(() => invoke(state, draft => { draft.value = 2; })).toThrow(/Accessors/);
-    expect(getter).not.toHaveBeenCalled();
+    const next = invoke(state, draft => { draft.value = 2; });
+    expect(getter).toHaveBeenCalled();
+    expect(next.value).toBe(2);
+    expect(Object.getOwnPropertyDescriptor(state, 'value')!.get).toBe(getter);
+    expect(Object.getOwnPropertyDescriptor(next, 'value')!.value).toBe(2);
+  });
+
+  it('keeps native filter when directly reading a frozen array getter', () => {
+    const getter = vi.fn(() => 4);
+    const state = [1, 2, 3];
+    Object.defineProperty(state, '1', { get: getter, enumerable: true, configurable: true });
+    Object.freeze(state);
+    const next = produce(state, draft => {
+      expect(draft.filter).toBe(Array.prototype.filter);
+      return draft.filter(value => value % 2 === 0);
+    });
+    expect(next).toEqual([4]);
+    expect(getter).toHaveBeenCalledOnce();
+    expect(Object.getOwnPropertyDescriptor(state, '1')!.get).toBe(getter);
+  });
+
+  it('reads assigned values directly during finalization', () => {
+    const getter = vi.fn(() => 2);
+    const external = Object.defineProperty({}, 'value', { get: getter, enumerable: true });
+    const state = { child: { value: 1 } };
+    const next = invoke(state, draft => { draft.child = external; });
+    expect(next.child).toBe(external);
+    expect(state.child.value).toBe(1);
+    expect(getter).toHaveBeenCalledOnce();
+  });
+
+  it('propagates getter errors and revokes the draft', () => {
+    const error = new Error('getter failed');
+    const getter = vi.fn(() => { throw error; });
+    const state = Object.defineProperty({}, 'value', { get: getter, enumerable: true });
+    let visited: { value: unknown } | undefined;
+    expect(() => invoke(state, draft => { visited = draft; void draft.value; })).toThrow(error);
+    expect(() => visited!.value).toThrow(TypeError);
+    expect(getter).toHaveBeenCalledOnce();
   });
 
   it.each(['__proto__', 'constructor', 'prototype'])('rejects dangerous writes to %s', key => {

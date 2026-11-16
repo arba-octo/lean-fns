@@ -100,6 +100,10 @@ The synchronous recipe runs once. Its draft uses revocable proxies, created lazi
 
 `delete draft.items[index]` leaves a hole. Use `splice` to remove and shift elements. Missing intermediate branches must be initialized explicitly, for example `draft.user ??= { name: '', age: 0 }` when the input type has an optional user.
 
+The draft's `filter` method is the native `Array.prototype.filter`, operating on the draft through its proxy. Standard callback arguments, `thisArg`, sparse-array behavior and initial-length semantics are preserved. Objects from the input reach the callback as drafts.
+
+Property values are read directly, without inspecting descriptors to detect getters or non-enumerable fields. Getters can run during reads, shallow copying and finalization; their side effects are not isolated by `produce`. The supported state model remains a tree of ordinary data properties, and accessors or custom descriptors are not validated or fully supported.
+
 ### Identity and no-op behavior
 
 ```ts
@@ -146,11 +150,13 @@ pnpm bench:produce
 pnpm bench:produce --rounds 3 --time 500 --warmup 200 --output /absolute/path/outside-the-repo/produce.json
 # Focus on one scenario; all implementations use the same fixture and recipe.
 pnpm bench:produce --scenario filter-1000 --rounds 5 --time 2000 --warmup 500
+pnpm bench:produce --scenario filter-numbers --rounds 5 --time 2000 --warmup 500
+pnpm bench:produce --scenario many-writes --rounds 5 --time 2000 --warmup 500
 # Optional saved baseline module, measured on the same current fixtures.
 pnpm bench:produce --baseline /absolute/path/to/historical-produce.mjs --output /absolute/path/outside-the-repo/comparison.json
 ```
 
-The comparison builds the isolated `produce` export and the installed Immer's `Immer({ autoFreeze: false }).produce` as production/minified ESM using the same installed Rolldown. Sixteen scenarios cover no-op, read-only, equal-value writes, deep writes, many writes, wide objects, numeric/object arrays, filtering, spreading, external assignment, array reordering and frozen input. Filter cases include object and numeric arrays, read-only filtering, and callback mutations on a sparse array. Four scenarios also include a handwritten update as an overhead reference. The optional saved module keeps its original build and is labeled `baseline`, with its source path and hash in JSON. `--scenario` selects one exact scenario ID from `benchmarks/produce-cases.mjs`.
+The comparison builds the isolated `produce` export and the installed Immer's `Immer({ autoFreeze: false }).produce` as production/minified ESM using the same installed Rolldown. Immer's Array Methods Plugin is not enabled, so both implementations use native `filter`. Seventeen scenarios cover no-op, read-only, equal-value writes, deep writes, many writes, wide objects, numeric/object arrays, filtering, spreading, external assignment, array reordering and frozen input. Filter cases include object and numeric arrays with and without writes, and callback mutations on a sparse array. Four scenarios also include a handwritten update as an overhead reference. The optional saved module keeps its original build and is labeled `baseline`, with its source path and hash in JSON. `--scenario` selects one exact scenario ID from `benchmarks/produce-cases.mjs`.
 
 Correctness checks compare values, input preservation, callback count and reference identity before timing. Each call uses a fresh independent fixture; creation occurs outside timing and consumes the wall-clock budget. Operations are measured in batches of 16, with at least 64 samples per worker, 3 rounds, 500 ms measurement and 200 ms warmup by default. Each scenario/implementation/round runs in a separate sequential process in a seeded shuffled order. Results escape timing and are checked afterwards. No timer-overhead subtraction or forced GC is used.
 

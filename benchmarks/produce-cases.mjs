@@ -43,6 +43,9 @@ export const scenarios = [
   { id: 'filter-numbers', description: 'Filter 1000 numbers, then edit the first retained value',
     create: seed => ({ items: Array.from({ length: 1000 }, (_, i) => seed + i), shared: { seed } }),
     recipe(draft) { draft.items = draft.items.filter(item => item % 2 === 0); draft.items[0]++; } },
+  { id: 'filter-numbers-read-only', description: 'Filter 1000 numbers without changing state', noop: true,
+    create: seed => ({ items: Array.from({ length: 1000 }, (_, i) => seed + i), shared: { seed } }),
+    recipe(draft) { if (draft.items.filter(item => item % 2 === 0).length !== 500) throw new Error('invalid fixture'); } },
   { id: 'filter-sparse-edit', description: 'Filter a sparse 1000-slot array and edit retained objects in the callback',
     create: seed => {
       const state = objects(seed);
