@@ -91,7 +91,7 @@ The synchronous recipe runs once. Its draft uses revocable proxies, created lazi
 
 ### Supported state and operations
 
-- A plain object or ordinary array at the root, containing a tree of plain objects, arrays and primitive values. Null-prototype dictionaries are supported and retain their prototype when copied.
+- A plain object or ordinary array at the root, containing a tree of plain objects, arrays and primitive values, including ordinary data from another JavaScript realm such as an iframe. Null-prototype dictionaries are supported and retain their prototype when copied.
 - Objects have own enumerable string data properties. Arrays have indexed elements and their standard `length`. `undefined`, `null`, `NaN`, bigint and symbol **values** are supported.
 - Assignment, deletion, `Object.keys`, `in`, spread, iteration and standard array methods work. Array callbacks receive drafts for objects from the input. `filter`, `map`, `splice`, `sort` and `reverse` can be followed by further edits to retained or moved elements.
 - Frozen, sealed and non-extensible inputs are supported. New containers are writable and are not automatically frozen. Untouched frozen branches stay frozen and shared.

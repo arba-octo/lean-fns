@@ -60,9 +60,18 @@ function assertPrototype(value: Container): void {
   const prototype = Object.getPrototypeOf(value);
   const array = Array.isArray(value);
   const expected = array ? Array.prototype : Object.prototype;
-  if (prototype !== expected && !(prototype === null && !array)) {
+  if (prototype !== expected && !(prototype === null && !array) && !isForeignPrototype(prototype, array)) {
     throw new TypeError('produce supports only plain objects and ordinary arrays');
   }
+}
+
+function isForeignPrototype(prototype: unknown, array: boolean): boolean {
+  if (prototype === null || typeof prototype !== 'object') return false;
+  // Other realms have distinct built-ins. Inspect only the prototype's constructor,
+  // without invoking a custom constructor getter or changing direct data reads.
+  const constructor: unknown = Object.getOwnPropertyDescriptor(prototype, 'constructor')?.value;
+  return typeof constructor === 'function' && constructor.prototype === prototype
+    && Function.prototype.toString.call(constructor) === Function.prototype.toString.call(array ? Array : Object);
 }
 
 function assertValue(value: unknown, scope: Scope): void {

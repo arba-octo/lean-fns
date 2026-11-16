@@ -1,3 +1,4 @@
+import { runInNewContext } from 'node:vm';
 import { describe, expect, it, vi } from 'vitest';
 import { produce } from '../src/index.js';
 
@@ -21,6 +22,94 @@ describe('produce', () => {
     expect(next.cart[0]).not.toBe(state.cart[0]);
     expect(next.cart[1]).toBe(state.cart[1]);
     expect(next.shared).toBe(state.shared);
+  });
+
+  it('accepts a plain object root from another realm without losing no-op identity', () => {
+    const state = runInNewContext('({ child: { count: 1 }, shared: {} })') as {
+      child: { count: number }; shared: object;
+    };
+    expect(produce(state, draft => { draft.child.count = 1; })).toBe(state);
+    const next = produce(state, draft => { draft.child.count++; });
+    expect(next.child.count).toBe(2);
+    expect(state.child.count).toBe(1);
+    expect(next.child).not.toBe(state.child);
+    expect(next.shared).toBe(state.shared);
+  });
+
+  it('uses native filter on a frozen sparse array root from another realm', () => {
+    const state = runInNewContext('Object.freeze([Object.freeze({ count: 1 }), , undefined, { count: 2 }])') as
+      ({ count: number } | undefined)[];
+    const next = produce(state, draft => {
+      expect(draft.filter).toBe(state.filter);
+      const retained = draft.filter(value => value !== undefined);
+      retained[0]!.count++;
+      draft.push({ count: 3 });
+    });
+    expect(next).toEqual([{ count: 2 }, , undefined, { count: 2 }, { count: 3 }]);
+    expect(Object.hasOwn(next, 1)).toBe(false);
+    expect(Object.hasOwn(next, 2)).toBe(true);
+    expect(next[3]).toBe(state[3]);
+    expect(state[0]!.count).toBe(1);
+    expect(state).toHaveLength(4);
+  });
+
+  it('drafts nested objects and arrays from another realm inside a local root', () => {
+    const branch = runInNewContext('({ items: [{ count: 1 }, { count: 2 }] })') as {
+      items: { count: number }[];
+    };
+    const state = { branch, shared: {} };
+    const next = produce(state, draft => { draft.branch.items[0]!.count++; });
+    expect(next.branch.items).toEqual([{ count: 2 }, { count: 2 }]);
+    expect(branch.items[0]!.count).toBe(1);
+    expect(next.branch.items[1]).toBe(branch.items[1]);
+    expect(next.shared).toBe(state.shared);
+  });
+
+  it.each(['({ count: 1 })', '[{ count: 1 }]'])('retains external values from another realm by reference: %s', expression => {
+    const external: unknown = runInNewContext(expression);
+    const state = { value: null };
+    const next = invoke(state, draft => {
+      draft.value = external;
+      expect(draft.value).toBe(external);
+    });
+    expect(next.value).toBe(external);
+    expect(state.value).toBeNull();
+  });
+
+  it.each(['({ child: { count: 2 } })', '[{ count: 2 }]'])('accepts a replacement from another realm: %s', expression => {
+    const replacement: unknown = runInNewContext(expression);
+    const state = { count: 1 };
+    expect(invoke(state, () => replacement)).toBe(replacement);
+    expect(state).toEqual({ count: 1 });
+  });
+
+  it('finalizes a draft inside a replacement wrapper from another realm', () => {
+    const state = { child: { count: 1 } };
+    let wrapper: { child: { count: number } } | undefined;
+    const next = produce(state, draft => {
+      wrapper = runInNewContext('({ child })', { child: draft.child }) as typeof state;
+      return wrapper;
+    });
+    expect(next).toEqual({ child: { count: 1 } });
+    expect(next === wrapper).toBe(false);
+    expect(next.child).toBe(state.child);
+    expect(() => wrapper!.child.count).toThrow(TypeError);
+  });
+
+  it.each([
+    'new (class Example { count = 1 })()',
+    'new (class Example extends Array {})()',
+    'Object.create({ count: 1 })',
+    'Object.create({ constructor: Object })',
+    'Object.setPrototypeOf([], { constructor: Array })',
+    'Object.setPrototypeOf([], null)',
+    'Object.create(Object.defineProperty({}, "constructor", { get() { throw new Error("constructor getter"); } }))',
+  ])('rejects nonstandard prototypes from another realm: %s', expression => {
+    const value: unknown = runInNewContext(expression);
+    expect(() => invoke(value, () => {})).toThrow(TypeError);
+    expect(() => invoke({ value }, draft => { void draft.value; })).toThrow(TypeError);
+    expect(() => invoke({ value: null }, draft => { draft.value = value; })).toThrow(TypeError);
+    expect(() => invoke({}, () => value)).toThrow(TypeError);
   });
 
   it('calls the recipe synchronously once with only the draft', () => {
