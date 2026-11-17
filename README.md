@@ -102,6 +102,22 @@ The synchronous recipe runs once. Its draft uses revocable proxies, created lazi
 
 The draft's `filter` method is the native `Array.prototype.filter`, operating on the draft through its proxy. Standard callback arguments, `thisArg`, sparse-array behavior and initial-length semantics are preserved. Objects from the input reach the callback as drafts.
 
+Since `filter` returns a new array, assign it back to the draft to update a nested field:
+
+```ts
+const next = produce(state, draft => {
+  draft.items = draft.items.filter(item => !item.done);
+});
+```
+
+For an array at the root, return the filtered array instead:
+
+```ts
+const nextItems = produce(state.items, draft => draft.filter(item => !item.done));
+```
+
+Calling `filter` with a read-only predicate and discarding its result leaves the state unchanged.
+
 Property values are read directly, without inspecting descriptors to detect getters or non-enumerable fields. Getters can run during reads, shallow copying and finalization; their side effects are not isolated by `produce`. The supported state model remains a tree of ordinary data properties, and accessors or custom descriptors are not validated or fully supported.
 
 ### Identity and no-op behavior
