@@ -154,6 +154,8 @@ No return, `return undefined` and `return draft` finalize the draft. A complete 
 const reset = produce(state, () => ({ ...state, items: [] }));
 ```
 
+Reassigning the local `draft` parameter does not replace the root. With no other mutations, `produce(state, draft => { draft = { ...draft, items: [] }; })` returns the original state. Return the replacement as shown above.
+
 Changing the draft and returning a different state throws. Prefer block callbacks: `draft => { draft.items.push(item); }`. A short arrow that returns `push`'s number is invalid. Async/thenable recipe results are rejected. Every draft is revoked after success or error, so it cannot be used later. Recipe errors propagate. The library does not roll back external side effects performed by the recipe.
 
 `ProduceDraft<T>` removes readonly modifiers within the recipe. Field types, optional fields, tuples and literal unions are preserved, and the result retains `T`. Consumer checks cover NodeNext, Bundler and CommonJS. TypeScript can hide unsupported runtime values through wider structural types, including class instances or an async function previously typed as returning `void`. Runtime restrictions still apply.
