@@ -127,7 +127,7 @@ produce(state, draft => { draft.user.name = 'Anna'; }) === state; // true
 produce(state, draft => { void draft.user.age; }) === state; // true
 ```
 
-An existing own value is compared with `Object.is`. Creating a missing property with `undefined` or filling a hole with `undefined` changes the state. A new object is a change even when its contents are equal. Writing a different value and then restoring the old value may return a new root.
+An existing own value is compared with `Object.is`. Assigning `NaN` to a field that already holds `NaN` is a no-op. Changing `0` to `-0` counts as a write. Creating a missing property with `undefined` or filling a hole with `undefined` changes the state. A new object is a change even when its contents are equal. Writing a different value and then restoring the old value may return a new root.
 
 Unchanged branches are shared. Treat the input and result as read-only outside recipes: mutating a shared branch directly also affects the other state.
 
